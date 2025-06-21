@@ -9,7 +9,6 @@ import {
   Settings, 
   Home,
   FileText,
-  BarChart3,
   Moon,
   Sun,
   Monitor,
@@ -20,7 +19,7 @@ import {
 
 const Navigation: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
+  const { theme, actualTheme, setTheme } = useTheme();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
@@ -29,7 +28,6 @@ const Navigation: React.FC = () => {
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Text Banks', href: '/text-banks', icon: FileText, roles: ['professor', 'admin'] },
-    { name: 'Results', href: '/results', icon: BarChart3 },
   ];
 
   const themeOptions = [

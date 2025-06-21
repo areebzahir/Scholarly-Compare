@@ -8,7 +8,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import TextBanks from './pages/TextBanks';
-import Results from './pages/Results';
 import Profile from './pages/Profile';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -38,14 +37,6 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="professor">
               <TextBanks />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/results"
-          element={
-            <ProtectedRoute>
-              <Results />
             </ProtectedRoute>
           }
         />
