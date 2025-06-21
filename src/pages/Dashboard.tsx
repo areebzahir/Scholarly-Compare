@@ -13,7 +13,12 @@ import {
   Clock,
   RefreshCw,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown,
+  ChevronRight,
+  MessageSquare,
+  Target,
+  BarChart3
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
@@ -49,6 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const [error, setError] = useState<string>('');
   const [currentProcessing, setCurrentProcessing] = useState<string>('');
+  const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!correctAnswer.trim()) {
@@ -276,6 +282,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     setSortOrder('asc');
     setError('');
     setCurrentProcessing('');
+    setExpandedStudent(null);
   };
 
   const getSortIcon = (column: string) => {
@@ -289,6 +296,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     if (score >= 70) return 'text-yellow-600 bg-yellow-50';
     if (score >= 60) return 'text-orange-600 bg-orange-50';
     return 'text-red-600 bg-red-50';
+  };
+
+  const toggleStudentExpansion = (studentName: string) => {
+    setExpandedStudent(expandedStudent === studentName ? null : studentName);
   };
 
   return (
@@ -352,7 +363,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               <li>Enter the correct answer in the text area</li>
               <li>Upload a CSV file with student answers</li>
               <li>AI will compare each student answer</li>
-              <li>View results sorted by name, score, or similarity</li>
+              <li>Click on any student to see detailed feedback</li>
               <li>Export results to CSV for record keeping</li>
             </ol>
             <div className="bg-white rounded-lg border border-blue-200 p-4">
@@ -495,7 +506,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                   <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
                   Assessment Results
                 </h3>
-                <p className="text-sm text-gray-600">{results.length} students processed</p>
+                <p className="text-sm text-gray-600">{results.length} students processed • Click any student for details</p>
               </div>
               <div className="flex space-x-3">
                 <button
@@ -566,14 +577,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                   <tr>
-                    <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-100 transition-colors"
-                      onClick={() => handleSort('name')}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>Student Name</span>
-                        <span className="text-gray-400">{getSortIcon('name')}</span>
-                      </div>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Student Details
                     </th>
                     <th 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-100 transition-colors"
@@ -597,75 +602,169 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                       Pass/Fail
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Feedback
+                      Quick Feedback
                     </th>
-                    {showAnswers && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student Answer
-                      </th>
-                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {results.map((result, index) => (
-                    <tr key={index} className="hover:bg-blue-50/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 p-2 rounded-full mr-3">
-                            <Users className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {result.name}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`text-sm font-bold px-3 py-1 rounded-full ${getScoreColor(result.score)}`}>
-                          {result.score}%
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 font-medium">
-                          {result.similarity}%
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          result.passed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {result.passed ? (
-                            <>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              PASS
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="h-3 w-3 mr-1" />
-                              FAIL
-                            </>
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs">
-                          <div className="truncate" title={result.feedback}>
-                            {result.feedback}
-                          </div>
-                        </div>
-                      </td>
-                      {showAnswers && (
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-600 max-w-xs">
-                            <div className="truncate" title={result.answer}>
-                              {result.answer.substring(0, 100)}
-                              {result.answer.length > 100 ? '...' : ''}
+                    <React.Fragment key={index}>
+                      <tr 
+                        className="hover:bg-blue-50/50 transition-colors cursor-pointer"
+                        onClick={() => toggleStudentExpansion(result.name)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 p-2 rounded-full mr-3">
+                              <Users className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div className="flex items-center">
+                              <div className="text-sm font-medium text-gray-900 mr-2">
+                                {result.name}
+                              </div>
+                              {expandedStudent === result.name ? (
+                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                              )}
                             </div>
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className={`text-sm font-bold px-3 py-1 rounded-full ${getScoreColor(result.score)}`}>
+                            {result.score}%
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 font-medium">
+                            {result.similarity}%
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                            result.passed 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {result.passed ? (
+                              <>
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                PASS
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-3 w-3 mr-1" />
+                                FAIL
+                              </>
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900 max-w-xs">
+                            <div className="truncate" title={result.feedback}>
+                              {result.feedback.substring(0, 60)}
+                              {result.feedback.length > 60 ? '...' : ''}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {/* Expanded Details */}
+                      {expandedStudent === result.name && (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-6 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Student Answer */}
+                              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                                <div className="flex items-center mb-3">
+                                  <MessageSquare className="h-5 w-5 text-blue-600 mr-2" />
+                                  <h4 className="font-semibold text-gray-900">Student Answer</h4>
+                                </div>
+                                <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border max-h-40 overflow-y-auto">
+                                  {result.answer}
+                                </div>
+                              </div>
+
+                              {/* Detailed Feedback & Analysis */}
+                              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                                <div className="flex items-center mb-3">
+                                  <Target className="h-5 w-5 text-green-600 mr-2" />
+                                  <h4 className="font-semibold text-gray-900">Detailed Analysis</h4>
+                                </div>
+                                
+                                {/* Score Breakdown */}
+                                <div className="mb-4">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-gray-600">Overall Score</span>
+                                    <span className={`text-lg font-bold ${result.score >= 60 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {result.score}%
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full transition-all ${
+                                        result.score >= 60 ? 'bg-green-500' : 'bg-red-500'
+                                      }`}
+                                      style={{ width: `${result.score}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+
+                                <div className="mb-4">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-gray-600">Content Similarity</span>
+                                    <span className="text-sm font-bold text-blue-600">{result.similarity}%</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-blue-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${result.similarity}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+
+                                {/* Detailed Feedback */}
+                                <div>
+                                  <h5 className="text-sm font-medium text-gray-600 mb-2">AI Feedback</h5>
+                                  <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border">
+                                    {result.feedback}
+                                  </div>
+                                </div>
+
+                                {/* Performance Indicators */}
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    result.score >= 90 ? 'bg-emerald-100 text-emerald-800' :
+                                    result.score >= 80 ? 'bg-green-100 text-green-800' :
+                                    result.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                                    result.score >= 60 ? 'bg-orange-100 text-orange-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    <BarChart3 className="h-3 w-3 mr-1" />
+                                    {result.score >= 90 ? 'Excellent' :
+                                     result.score >= 80 ? 'Good' :
+                                     result.score >= 70 ? 'Satisfactory' :
+                                     result.score >= 60 ? 'Needs Improvement' :
+                                     'Requires Review'}
+                                  </span>
+                                  
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    result.similarity >= 80 ? 'bg-blue-100 text-blue-800' :
+                                    result.similarity >= 60 ? 'bg-indigo-100 text-indigo-800' :
+                                    'bg-purple-100 text-purple-800'
+                                  }`}>
+                                    <Target className="h-3 w-3 mr-1" />
+                                    {result.similarity >= 80 ? 'High Similarity' :
+                                     result.similarity >= 60 ? 'Moderate Similarity' :
+                                     'Low Similarity'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                    </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
