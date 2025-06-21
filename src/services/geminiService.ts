@@ -8,6 +8,13 @@ export interface ComparisonResult {
   passed: boolean;
 }
 
+export interface StudentAnswer {
+  id: string;
+  studentName: string;
+  answer: string;
+  result?: ComparisonResult;
+}
+
 export const compareAnswers = async (
   correctAnswer: string,
   studentAnswer: string
@@ -191,4 +198,47 @@ Respond with ONLY valid JSON in this format:
       };
     }
   }
+};
+
+export const batchCompareAnswers = async (
+  correctAnswer: string,
+  studentAnswers: StudentAnswer[],
+  onProgress?: (completed: number, total: number) => void
+): Promise<StudentAnswer[]> => {
+  const results: StudentAnswer[] = [];
+  
+  for (let i = 0; i < studentAnswers.length; i++) {
+    const studentAnswer = studentAnswers[i];
+    
+    try {
+      const result = await compareAnswers(correctAnswer, studentAnswer.answer);
+      results.push({
+        ...studentAnswer,
+        result
+      });
+    } catch (error) {
+      console.error(`Error comparing answer for student ${studentAnswer.studentName}:`, error);
+      results.push({
+        ...studentAnswer,
+        result: {
+          similarity: 0,
+          feedback: 'Error processing answer',
+          score: 0,
+          passed: false
+        }
+      });
+    }
+    
+    // Call progress callback if provided
+    if (onProgress) {
+      onProgress(i + 1, studentAnswers.length);
+    }
+    
+    // Add a small delay to avoid rate limiting
+    if (i < studentAnswers.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  return results;
 };
