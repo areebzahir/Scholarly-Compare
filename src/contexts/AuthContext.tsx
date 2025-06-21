@@ -4,7 +4,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'professor' | 'student' | 'admin' | 'guest';
+  role: 'professor' | 'student' | 'admin' | 'guest' | 'user';
   avatar?: string;
   createdAt: Date;
   lastLogin: Date;
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginAsGuest = async () => {
     const guestUser: User = {
       id: 'guest-' + Date.now(),
-      name: 'Guest User',
+      name: 'Guest User', // This will be updated from the login form
       email: 'guest@eduassess.ai',
       role: 'guest',
       createdAt: new Date(),

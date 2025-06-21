@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   BookOpen, 
   Users,
+  User,
   Moon,
   Sun,
   Monitor,
@@ -16,13 +17,26 @@ const Login: React.FC = () => {
   const { loginAsGuest } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [loginType, setLoginType] = useState<'guest' | 'user'>('guest');
 
-  const handleGuestLogin = async () => {
+  const handleLogin = async () => {
+    if (!name.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
     try {
       await loginAsGuest();
+      // Update the user name after login
+      const userData = JSON.parse(localStorage.getItem('eduassess_user') || '{}');
+      userData.name = name.trim();
+      userData.role = loginType;
+      localStorage.setItem('eduassess_user', JSON.stringify(userData));
+      
       navigate('/dashboard');
     } catch (error) {
-      console.error('Guest login failed:', error);
+      console.error('Login failed:', error);
     }
   };
 
@@ -70,7 +84,7 @@ const Login: React.FC = () => {
           </p>
         </div>
 
-        {/* Welcome Card */}
+        {/* Login Form Card */}
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/20 p-8 mb-6">
           <div className="text-center mb-6">
             <div className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl mb-4">
@@ -80,8 +94,62 @@ const Login: React.FC = () => {
               Welcome to EduAssess AI
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Experience the power of AI-driven assessment tools. Compare student answers with reference solutions and get detailed feedback instantly.
+              Enter your name to get started with AI-powered assessment tools
             </p>
+          </div>
+
+          {/* Login Type Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Choose your role
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setLoginType('guest')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  loginType === 'guest'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <Users className="h-6 w-6 mx-auto mb-2" />
+                <span className="text-sm font-medium">Guest</span>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Explore features
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginType('user')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  loginType === 'user'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <User className="h-6 w-6 mx-auto mb-2" />
+                <span className="text-sm font-medium">User</span>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Full access
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Name Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Your Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            />
           </div>
 
           {/* Features List */}
@@ -100,17 +168,18 @@ const Login: React.FC = () => {
             </div>
             <div className="flex items-center space-x-3 text-sm text-gray-700 dark:text-gray-300">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span>Detailed analytics and insights</span>
+              <span>Export results and analytics</span>
             </div>
           </div>
 
-          {/* Guest Login Button */}
+          {/* Login Button */}
           <button
-            onClick={handleGuestLogin}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 flex items-center justify-center space-x-3 group shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+            onClick={handleLogin}
+            disabled={!name.trim()}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 flex items-center justify-center space-x-3 group shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <Users className="h-5 w-5" />
-            <span>Continue as Guest</span>
+            {loginType === 'guest' ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
+            <span>Continue as {loginType === 'guest' ? 'Guest' : 'User'}</span>
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -118,7 +187,7 @@ const Login: React.FC = () => {
         {/* Info Card */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
-            <strong>No registration required!</strong> Start exploring our AI assessment tools immediately with guest access.
+            <strong>No registration required!</strong> Simply enter your name and start exploring our AI assessment tools immediately.
           </p>
         </div>
 
