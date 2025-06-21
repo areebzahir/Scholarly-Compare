@@ -376,7 +376,6 @@ const Dashboard: React.FC = () => {
 
         {/* Correct Answer Input */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
           <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 dark:border-gray-700/20 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
@@ -441,10 +440,7 @@ const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-
-            )
-            }
-
+            )}
 
             {processing && (
               <div className="text-center py-8">
@@ -475,11 +471,7 @@ const Dashboard: React.FC = () => {
                   </p>
                 )}
               </div>
-            )
-
-
-            }
-
+            )}
 
             {results.length > 0 && (
               <div className="text-center py-4">
@@ -501,9 +493,6 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
-
-
-
 
         {/* Results Section */}
         {results.length > 0 && (
