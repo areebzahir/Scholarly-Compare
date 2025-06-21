@@ -334,7 +334,7 @@ const Login: React.FC = () => {
         {/* Info Card */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
-            <strong>Quick Access:</strong> {activeTab === 'login' ? 'Use any email/password to log in' : 'Create an account with any email'}, or continue as guest to explore our AI assessment tools immediately.
+            <strong>Quick Access:</strong> {activeTab === 'login' ? 'Use any email/password to log in' : \'Create an account with any email'}, or continue as guest to explore our AI assessment tools immediately.
           </p>
         </div>
 
