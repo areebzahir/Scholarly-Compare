@@ -11,10 +11,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
+  // For guest access, allow all routes since we simplified the auth
+  // If you want to restrict certain features for guests, you can add logic here
+  if (requiredRole && user.role !== requiredRole && user.role !== 'guest') {
     return <Navigate to="/dashboard" replace />;
   }
 
