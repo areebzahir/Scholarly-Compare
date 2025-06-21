@@ -23,16 +23,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { compareAnswers } from '../services/geminiService';
-
-interface User {
-  name: string;
-  role: string;
-}
-
-interface DashboardProps {
-  user: User;
-  onLogout: () => void;
-}
+import { useAuth } from '../contexts/AuthContext';
 
 interface StudentResult {
   name: string;
@@ -43,7 +34,8 @@ interface StudentResult {
   feedback: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
+const Dashboard: React.FC = () => {
+  const { user, logout } = useAuth();
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [results, setResults] = useState<StudentResult[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -185,7 +177,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           correctAnswer,
           results: sortedResults,
           timestamp: new Date().toISOString(),
-          processedBy: user.name,
+          processedBy: user?.name || 'Unknown',
           fileName: file.name
         };
         savedResults.push(newEntry);
@@ -302,6 +294,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     setExpandedStudent(expandedStudent === studentName ? null : studentName);
   };
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
@@ -324,7 +320,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               <p className="text-xs text-gray-500 capitalize">{user.role}</p>
             </div>
             <button
-              onClick={onLogout}
+              onClick={logout}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors bg-white/50 px-3 py-2 rounded-lg hover:bg-white/80"
             >
               <LogOut className="h-4 w-4" />
