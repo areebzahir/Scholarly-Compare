@@ -15,7 +15,8 @@ import {
   BarChart3,
   Target,
   CheckCircle,
-  XCircle
+  XCircle,
+  MessageSquare
 } from 'lucide-react';
 import Papa from 'papaparse';
 
@@ -42,6 +43,7 @@ const PreviousResults: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'students' | 'avgScore'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedResult, setExpandedResult] = useState<number | null>(null);
+  const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
   const [selectedResults, setSelectedResults] = useState<number[]>([]);
 
   useEffect(() => {
@@ -158,6 +160,11 @@ const PreviousResults: React.FC = () => {
     } else {
       setSelectedResults(filteredAndSortedResults.map(result => result.id));
     }
+  };
+
+  const toggleStudentExpansion = (studentName: string, resultId: number) => {
+    const studentKey = `${resultId}-${studentName}`;
+    setExpandedStudent(expandedStudent === studentKey ? null : studentKey);
   };
 
   const getScoreColor = (score: number) => {
@@ -418,38 +425,148 @@ const PreviousResults: React.FC = () => {
                       <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                           <Users className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
-                          Student Results Preview
+                          Student Results Preview (Click any student for details)
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                          {result.results.slice(0, 9).map((student, index) => (
-                            <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="font-medium text-gray-900 dark:text-white text-sm">
-                                  {student.name}
-                                </span>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  student.passed 
-                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' 
-                                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
-                                }`}>
-                                  {student.passed ? (
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                  ) : (
-                                    <XCircle className="h-3 w-3 mr-1" />
-                                  )}
-                                  {student.score}%
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Similarity: {student.similarity}%
-                              </div>
-                            </div>
-                          ))}
-                          {result.results.length > 9 && (
-                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                              <span className="text-sm">+{result.results.length - 9} more</span>
-                            </div>
-                          )}
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {result.results.map((student, index) => {
+                            const studentKey = `${result.id}-${student.name}`;
+                            const isStudentExpanded = expandedStudent === studentKey;
+                            
+                            return (
+                              <React.Fragment key={index}>
+                                <div 
+                                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                  onClick={() => toggleStudentExpansion(student.name, result.id)}
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="flex items-center">
+                                        {isStudentExpanded ? (
+                                          <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                        )}
+                                        <span className="font-medium text-gray-900 dark:text-white text-sm">
+                                          {student.name}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        Similarity: {student.similarity}%
+                                      </span>
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                        student.passed 
+                                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' 
+                                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                                      }`}>
+                                        {student.passed ? (
+                                          <CheckCircle className="h-3 w-3 mr-1" />
+                                        ) : (
+                                          <XCircle className="h-3 w-3 mr-1" />
+                                        )}
+                                        {student.score}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Expanded Student Details */}
+                                {isStudentExpanded && (
+                                  <div className="ml-6 mb-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-lg p-4">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                      {/* Student Answer */}
+                                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-blue-100 dark:border-blue-800">
+                                        <div className="flex items-center mb-3">
+                                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+                                          <h5 className="font-semibold text-gray-900 dark:text-white">Student Answer</h5>
+                                        </div>
+                                        <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border max-h-32 overflow-y-auto">
+                                          {student.answer}
+                                        </div>
+                                      </div>
+
+                                      {/* Detailed Analysis */}
+                                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-blue-100 dark:border-blue-800">
+                                        <div className="flex items-center mb-3">
+                                          <Target className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                                          <h5 className="font-semibold text-gray-900 dark:text-white">Detailed Analysis</h5>
+                                        </div>
+                                        
+                                        {/* Score Breakdown */}
+                                        <div className="mb-3">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Overall Score</span>
+                                            <span className={`text-lg font-bold ${student.score >= 60 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                              {student.score}%
+                                            </span>
+                                          </div>
+                                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div
+                                              className={`h-2 rounded-full transition-all ${
+                                                student.score >= 60 ? 'bg-green-500' : 'bg-red-500'
+                                              }`}
+                                              style={{ width: `${student.score}%` }}
+                                            ></div>
+                                          </div>
+                                        </div>
+
+                                        <div className="mb-3">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Content Similarity</span>
+                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{student.similarity}%</span>
+                                          </div>
+                                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div
+                                              className="bg-blue-500 h-2 rounded-full transition-all"
+                                              style={{ width: `${student.similarity}%` }}
+                                            ></div>
+                                          </div>
+                                        </div>
+
+                                        {/* AI Feedback */}
+                                        <div>
+                                          <h6 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">AI Feedback</h6>
+                                          <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border">
+                                            {student.feedback}
+                                          </div>
+                                        </div>
+
+                                        {/* Performance Indicators */}
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                            student.score >= 90 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' :
+                                            student.score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                            student.score >= 70 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                                            student.score >= 60 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
+                                            'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                                          }`}>
+                                            <BarChart3 className="h-3 w-3 mr-1" />
+                                            {student.score >= 90 ? 'Excellent' :
+                                             student.score >= 80 ? 'Good' :
+                                             student.score >= 70 ? 'Satisfactory' :
+                                             student.score >= 60 ? 'Needs Improvement' :
+                                             'Requires Review'}
+                                          </span>
+                                          
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                            student.similarity >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                                            student.similarity >= 60 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400' :
+                                            'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                                          }`}>
+                                            <Target className="h-3 w-3 mr-1" />
+                                            {student.similarity >= 80 ? 'High Similarity' :
+                                             student.similarity >= 60 ? 'Moderate Similarity' :
+                                             'Low Similarity'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
