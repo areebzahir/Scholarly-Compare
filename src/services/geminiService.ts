@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = 'AIzaSyADCqmkXrIZRY42SQrgha1cHO5f6A6y7vA';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
 export interface ComparisonResult {
   similarity: number;
