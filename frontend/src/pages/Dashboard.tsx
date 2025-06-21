@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Upload,
   Download,
@@ -53,6 +53,16 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    try {
+      await fetch("http://localhost:5000/api/answerdata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correctAnswer }),
+      });
+    } catch (error) {
+      console.error("Failed to send correct answer:", error);
+    }
+
     const file = acceptedFiles[0];
     if (!file) return;
 
@@ -75,6 +85,19 @@ const Dashboard: React.FC = () => {
         if (data.length === 0) {
           setError('CSV file is empty or has no data rows.');
           return;
+        }
+
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          await fetch("http://localhost:5000/api/file", {
+            method: "POST",
+            body: formData,
+          });
+        } catch (error) {
+          console.error("Failed to send CSV file:", error);
         }
 
         // Check available columns
@@ -307,30 +330,6 @@ const Dashboard: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  {
-    const formdata = new FormData();
-    formdata.append("text_data", correctAnswer)
-    formdata.append("file", studentAnswers)
-
-
-    useEffect(() => {
-      fetch("http://localhost:5000/api/file", { method: "POST", body: uploadedFile })
-        .then(res => res.json())
-        .then(data => console.log(data));
-
-      fetch("http://localhost:5000/api/answerdata", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: correctAnswer }),
-      })
-        .then(res => res.json())
-        .then(data => console.log(data));
-
-    })
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -419,10 +418,10 @@ const Dashboard: React.FC = () => {
               <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragActive
-                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 scale-105'
-                    : correctAnswer
-                      ? 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
-                      : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-not-allowed'
+                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 scale-105'
+                  : correctAnswer
+                    ? 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
+                    : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-not-allowed'
                   }`}
               >
                 <input {...getInputProps()} disabled={!correctAnswer} />
@@ -659,8 +658,8 @@ const Dashboard: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${result.passed
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                             }`}>
                             {result.passed ? (
                               <>
@@ -749,10 +748,10 @@ const Dashboard: React.FC = () => {
                                 {/* Performance Indicators */}
                                 <div className="mt-4 flex flex-wrap gap-2">
                                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${result.score >= 90 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' :
-                                      result.score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                                        result.score >= 70 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
-                                          result.score >= 60 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
-                                            'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                                    result.score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                      result.score >= 70 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                                        result.score >= 60 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
+                                          'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                                     }`}>
                                     <BarChart3 className="h-3 w-3 mr-1" />
                                     {result.score >= 90 ? 'Excellent' :
@@ -763,8 +762,8 @@ const Dashboard: React.FC = () => {
                                   </span>
 
                                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${result.similarity >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
-                                      result.similarity >= 60 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400' :
-                                        'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                                    result.similarity >= 60 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400' :
+                                      'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
                                     }`}>
                                     <Target className="h-3 w-3 mr-1" />
                                     {result.similarity >= 80 ? 'High Similarity' :
