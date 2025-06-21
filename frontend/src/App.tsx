@@ -19,6 +19,10 @@ const AppContent: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+  fetch("http://localhost:5000/api/users")
+  .then(res => res.json())
+  .then(data => console.log(data));
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {user && <Navigation />}
