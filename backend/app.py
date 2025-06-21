@@ -30,14 +30,29 @@ def save_answer():
     if not correct_answer:
         return jsonify({"error": "Missing correct answer"}), 400
     
-    # Store in MongoDB
-    answer_data.insert_one({
-        "Correct Answer": correct_answer,
-    })
-    
-
-
-    return jsonify({"message": "Correct answer saved"}), 200
+    try:
+        # Check for existing answer with exact match
+        existing = answer_data.find_one({"correct_answer": correct_answer})
+        
+        if existing:
+            return jsonify({
+                "message": "Answer already exists",
+            }), 200
+        
+        # Store in MongoDB
+        result = answer_data.insert_one({
+            "correct_answer": correct_answer,
+        })
+        
+        return jsonify({
+            "message": "Correct answer saved",
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to save answer",
+            "details": str(e)
+        }), 500
 
 @app.route("/api/file", methods=["POST"])
 def upload_file():
@@ -50,15 +65,35 @@ def upload_file():
     
     try:
         # Read and parse CSV file
-        csv_data = file.read().decode('utf-8')
+        csv_data = file.stream.read().decode('utf-8')
+        file.stream.seek(0)  # Reset file pointer
         reader = csv.DictReader(csv_data.splitlines())
         
         # Process CSV rows
         students = []
+        names_in_file = set()  # Track names within current file
+        
         for row in reader:
+            # Extract and clean name
+            name = None
+            for key in ['name', 'student', 'student name', 'full name']:
+                if key in row:
+                    name = row[key].strip()
+                    break
+            
+            if not name:
+                # Skip rows without name
+                continue
+                
+            # Check for duplicate name IN CURRENT FILE
+            if name in names_in_file:
+                continue
+            names_in_file.add(name)
+            
             # Create student document
             student = {
                 "filename": file.filename,
+                "name": name,
             }
             
             # Add all columns from CSV
@@ -69,18 +104,30 @@ def upload_file():
             
             students.append(student)
         
-        # Insert into MongoDB
-        if students:
-            result = student_data.insert_many(students)
-            return jsonify({
-                "message": "File contents stored successfully",
-                "filename": file.filename,
-                "students_inserted": len(result.inserted_ids),
-                "sample": students[0]  # Return first student as sample
-            }), 200
-        else:
-            return jsonify({"error": "CSV file is empty"}), 400
+        # Insert into MongoDB with duplicate name checking
+        inserted_count = 0
+        duplicates = 0
+        
+        for student in students:
+            # Check for existing student with same name and file
+            existing = student_data.find_one({
+                "name": student["name"],
+            })
             
+            if not existing:
+                student_data.insert_one(student)
+                inserted_count += 1
+            else:
+                duplicates += 1
+        
+        # Store file in GridFS if we have new students
+  
+        return jsonify({
+            "message": "File processed successfully",
+            "students_inserted": inserted_count,
+            "duplicates_skipped": duplicates,
+        }), 200
+        
     except Exception as e:
         return jsonify({
             "error": "Failed to process file",
