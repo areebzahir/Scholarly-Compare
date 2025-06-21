@@ -9,7 +9,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PreviousResults from './pages/PreviousResults';
 import TextBanks from './pages/TextBanks';
-import Profile from './pages/Profile';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const AppContent: React.FC = () => {
@@ -46,14 +45,6 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="professor">
               <TextBanks />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
             </ProtectedRoute>
           }
         />
