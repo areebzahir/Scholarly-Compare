@@ -77,7 +77,7 @@ const Login: React.FC = () => {
             </div>
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            EduAssess AI
+            Scholar Compare
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg">
             AI-Powered Educational Assessment Platform
@@ -91,7 +91,7 @@ const Login: React.FC = () => {
               <Sparkles className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome to EduAssess AI
+              Welcome to Scholar Compare
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               Enter your name to get started with AI-powered assessment tools
@@ -193,7 +193,7 @@ const Login: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>© 2024 EduAssess AI. Revolutionizing education through AI.</p>
+          <p>© 2024 Scholar Compare. Revolutionizing education through AI.</p>
         </div>
       </div>
     </div>

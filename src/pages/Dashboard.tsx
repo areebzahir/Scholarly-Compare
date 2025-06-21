@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  LogOut, 
   Upload, 
   Download, 
   FileText, 
@@ -10,7 +9,6 @@ import {
   AlertCircle,
   TrendingUp,
   Award,
-  Clock,
   RefreshCw,
   Eye,
   EyeOff,
@@ -35,7 +33,7 @@ interface StudentResult {
 }
 
 const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [results, setResults] = useState<StudentResult[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -300,36 +298,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-lg border-b border-white/20 dark:border-gray-700/20">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl">
-              <FileText className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                EduAssess AI
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">AI-Powered Answer Comparison</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white/50 dark:bg-gray-800/50 px-3 py-2 rounded-lg hover:bg-white/80 dark:hover:bg-gray-800/80"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Error Display */}
         {error && (
@@ -352,7 +320,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-8 shadow-sm">
           <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center">
             <Award className="h-5 w-5 mr-2" />
-            How to Use EduAssess AI
+            How to Use Scholar Compare
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <ol className="list-decimal list-inside text-blue-800 dark:text-blue-300 space-y-2">

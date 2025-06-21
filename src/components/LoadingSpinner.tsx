@@ -12,7 +12,7 @@ const LoadingSpinner: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl animate-ping opacity-20"></div>
         </div>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          EduAssess AI
+          Scholar Compare
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
           Loading your dashboard...
