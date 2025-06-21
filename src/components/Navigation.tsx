@@ -9,6 +9,7 @@ import {
   Settings, 
   Home,
   FileText,
+  History,
   Moon,
   Sun,
   Monitor,
@@ -27,6 +28,7 @@ const Navigation: React.FC = () => {
 
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Previous Results', href: '/previous-results', icon: History },
     { name: 'Text Banks', href: '/text-banks', icon: FileText, roles: ['professor', 'admin'] },
   ];
 
@@ -62,7 +64,7 @@ const Navigation: React.FC = () => {
               </div>
               <div className="hidden sm:block">
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  EduAssess AI
+                  Scholar Compare
                 </span>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   AI-Powered Assessment

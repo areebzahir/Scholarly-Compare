@@ -7,6 +7,7 @@ import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import PreviousResults from './pages/PreviousResults';
 import TextBanks from './pages/TextBanks';
 import Profile from './pages/Profile';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -29,6 +30,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/previous-results"
+          element={
+            <ProtectedRoute>
+              <PreviousResults />
             </ProtectedRoute>
           }
         />

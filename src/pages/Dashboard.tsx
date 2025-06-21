@@ -16,7 +16,8 @@ import {
   ChevronRight,
   MessageSquare,
   Target,
-  BarChart3
+  BarChart3,
+  Save
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
@@ -168,19 +169,6 @@ const Dashboard: React.FC = () => {
         setProgress(0);
         setCurrentProcessing('');
 
-        // Save to localStorage
-        const savedResults = JSON.parse(localStorage.getItem('assessment_results') || '[]');
-        const newEntry = {
-          id: Date.now(),
-          correctAnswer,
-          results: sortedResults,
-          timestamp: new Date().toISOString(),
-          processedBy: user?.name || 'Unknown',
-          fileName: file.name
-        };
-        savedResults.push(newEntry);
-        localStorage.setItem('assessment_results', JSON.stringify(savedResults));
-
         console.log('Processing complete. Results:', sortedResults);
       },
       error: (error) => {
@@ -263,6 +251,29 @@ const Dashboard: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const saveResults = () => {
+    if (results.length === 0) {
+      alert('No results to save. Please process some student answers first.');
+      return;
+    }
+
+    const savedResults = JSON.parse(localStorage.getItem('assessment_results') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      correctAnswer,
+      results: results,
+      timestamp: new Date().toISOString(),
+      processedBy: user?.name || 'Unknown',
+      fileName: uploadedFile || 'Manual Entry',
+      title: `Assessment - ${new Date().toLocaleDateString()}`
+    };
+    
+    savedResults.push(newEntry);
+    localStorage.setItem('assessment_results', JSON.stringify(savedResults));
+    
+    alert('Results saved successfully! You can view them in the Previous Results page.');
+  };
+
   const clearAll = () => {
     setCorrectAnswer('');
     setResults([]);
@@ -328,7 +339,7 @@ const Dashboard: React.FC = () => {
               <li>Upload a CSV file with student answers</li>
               <li>AI will compare each student answer</li>
               <li>Click on any student to see detailed feedback</li>
-              <li>Export results to CSV for record keeping</li>
+              <li>Save or export results for record keeping</li>
             </ol>
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 p-4">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">CSV Format Requirements:</p>
@@ -479,6 +490,13 @@ const Dashboard: React.FC = () => {
                 >
                   {showAnswers ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   <span>{showAnswers ? 'Hide' : 'Show'} Answers</span>
+                </button>
+                <button
+                  onClick={saveResults}
+                  className="bg-purple-600 dark:bg-purple-700 text-white px-4 py-2 rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors flex items-center space-x-2 shadow-md"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>Save Results</span>
                 </button>
                 <button
                   onClick={exportResults}
