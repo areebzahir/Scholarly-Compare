@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -10,57 +10,81 @@ import {
   Home,
   FileText,
   BarChart3,
-  Palette,
   Moon,
-  Sun
+  Sun,
+  Monitor,
+  Menu,
+  X,
+  ChevronDown
 } from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Text Banks', href: '/text-banks', icon: FileText },
+    { name: 'Text Banks', href: '/text-banks', icon: FileText, roles: ['professor', 'admin'] },
     { name: 'Results', href: '/results', icon: BarChart3 },
   ];
 
   const themeOptions = [
     { name: 'Light', value: 'light' as const, icon: Sun },
     { name: 'Dark', value: 'dark' as const, icon: Moon },
-    { name: 'Blue', value: 'blue' as const, icon: Palette },
-    { name: 'Purple', value: 'purple' as const, icon: Palette },
+    { name: 'System', value: 'system' as const, icon: Monitor },
   ];
+
+  const filteredNavItems = navigationItems.filter(item => 
+    !item.roles || item.roles.includes(user?.role || 'student')
+  );
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   if (!user) return null;
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700">
+    <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center space-x-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                EduAssess AI
-              </span>
+            <Link to="/dashboard" className="flex items-center space-x-3 group">
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl group-hover:scale-105 transition-transform">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  EduAssess AI
+                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  AI-Powered Assessment
+                </div>
+              </div>
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navigationItems.map((item) => {
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            {filteredNavItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100'
-                      : 'text-gray-700 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-300'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
@@ -70,23 +94,34 @@ const Navigation: React.FC = () => {
             })}
           </div>
 
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          {/* Right Side Menu */}
+          <div className="flex items-center space-x-3">
             {/* Theme Selector */}
-            <div className="relative group">
-              <button className="p-2 text-gray-700 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-300 transition-colors">
-                <Settings className="h-5 w-5" />
+            <div className="relative">
+              <button
+                onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+                className="p-2 text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+              >
+                {actualTheme === 'dark' ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
               </button>
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="py-1">
+              
+              {isThemeMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                   {themeOptions.map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setTheme(option.value)}
+                      onClick={() => {
+                        setTheme(option.value);
+                        setIsThemeMenuOpen(false);
+                      }}
                       className={`w-full flex items-center px-4 py-2 text-sm transition-colors ${
                         theme === option.value
-                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100'
-                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                          ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                       }`}
                     >
                       <option.icon className="h-4 w-4 mr-3" />
@@ -94,43 +129,122 @@ const Navigation: React.FC = () => {
                     </button>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* User Profile */}
-            <div className="flex items-center space-x-3">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200"
+              >
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                  />
+                ) : (
+                  <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                )}
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                    {user.role}
+                  </p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </p>
+                  </div>
+                  
+                  <Link
+                    to="/profile"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4 mr-3" />
+                    Profile Settings
+                  </Link>
+                  
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4 mr-3" />
+                    Sign Out
+                  </button>
                 </div>
               )}
-              <div className="hidden md:block">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                  {user.role}
-                </p>
-              </div>
             </div>
 
-            {/* Logout Button */}
+            {/* Mobile Menu Button */}
             <button
-              onClick={logout}
-              className="p-2 text-gray-700 hover:text-red-700 dark:text-gray-300 dark:hover:text-red-300 transition-colors"
-              title="Logout"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
             >
-              <LogOut className="h-5 w-5" />
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+            <div className="space-y-1">
+              {filteredNavItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Click outside to close menus */}
+      {(isThemeMenuOpen || isUserMenuOpen) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setIsThemeMenuOpen(false);
+            setIsUserMenuOpen(false);
+          }}
+        />
+      )}
     </nav>
   );
 };

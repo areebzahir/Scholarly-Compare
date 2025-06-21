@@ -1,34 +1,77 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useAuth } from './contexts/AuthContext';
+import Navigation from './components/Navigation';
+import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import TextBanks from './pages/TextBanks';
+import Results from './pages/Results';
+import Profile from './pages/Profile';
+import LoadingSpinner from './components/LoadingSpinner';
 
-function App() {
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
 
-  const login = (name: string, role: string) => {
-    setUser({ name, role });
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Routes>
-          <Route 
-            path="/" 
-            element={user ? <Navigate to="/dashboard" /> : <Login onLogin={login} />} 
-          />
-          <Route 
-            path="/dashboard" 
-            element={user ? <Dashboard user={user} onLogout={logout} /> : <Navigate to="/" />} 
-          />
-        </Routes>
-      </div>
-    </Router>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      {user && <Navigation />}
+      <Routes>
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/text-banks"
+          element={
+            <ProtectedRoute requiredRole="professor">
+              <TextBanks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/results"
+          element={
+            <ProtectedRoute>
+              <Results />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

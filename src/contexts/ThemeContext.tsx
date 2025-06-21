@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark' | 'blue' | 'purple';
+type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
+  actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -22,40 +24,55 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('system');
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
+    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setTheme(savedTheme);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('theme', theme);
-    
-    // Apply theme classes to document
-    const root = document.documentElement;
-    root.className = '';
-    
-    switch (theme) {
-      case 'dark':
-        root.classList.add('dark');
-        break;
-      case 'blue':
-        root.classList.add('theme-blue');
-        break;
-      case 'purple':
-        root.classList.add('theme-purple');
-        break;
-      default:
-        break;
+    const updateActualTheme = () => {
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        setActualTheme(systemTheme);
+      } else {
+        setActualTheme(theme as 'light' | 'dark');
+      }
+    };
+
+    updateActualTheme();
+
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQuery.addEventListener('change', updateActualTheme);
+      return () => mediaQuery.removeEventListener('change', updateActualTheme);
     }
   }, [theme]);
 
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    
+    const root = document.documentElement;
+    if (actualTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme, actualTheme]);
+
+  const toggleTheme = () => {
+    setTheme(actualTheme === 'light' ? 'dark' : 'light');
+  };
+
   const value = {
     theme,
-    setTheme
+    actualTheme,
+    setTheme,
+    toggleTheme
   };
 
   return (
