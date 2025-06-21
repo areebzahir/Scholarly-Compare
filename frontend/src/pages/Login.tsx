@@ -4,39 +4,65 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   BookOpen, 
-  Users,
-  User,
+  Mail,
+  Lock,
   Moon,
   Sun,
   Monitor,
-  ArrowRight,
-  Sparkles
+  Sparkles,
+  User,
+  Users
 } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { loginAsGuest } = useAuth();
+  const { loginAsGuest, updateUserProfile } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [loginType, setLoginType] = useState<'guest' | 'user'>('guest');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    if (!name.trim()) {
-      alert('Please enter your name');
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
       await loginAsGuest();
-      // Update the user name after login
-      const userData = JSON.parse(localStorage.getItem('eduassess_user') || '{}');
-      userData.name = name.trim();
-      userData.role = loginType;
-      localStorage.setItem('eduassess_user', JSON.stringify(userData));
+      // Update the user with the provided email
+      await updateUserProfile({
+        email: email.trim(),
+        name: email.split('@')[0] || 'User', // Use part before @ as name
+        role: 'user'
+      });
       
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginAsGuest();
+      // Keep default guest settings
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      setError('Guest login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,69 +117,82 @@ const Login: React.FC = () => {
               <Sparkles className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome to Scholar Compare
+              Welcome Back
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Enter your name to get started with AI-powered assessment tools
+              Sign in to access your assessment tools
             </p>
           </div>
 
-          {/* Login Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Choose your role
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Email Input */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email Address
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setLoginType('guest')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  loginType === 'guest'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                <Users className="h-6 w-6 mx-auto mb-2" />
-                <span className="text-sm font-medium">Guest</span>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Explore features
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginType('user')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  loginType === 'user'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                <User className="h-6 w-6 mx-auto mb-2" />
-                <span className="text-sm font-medium">User</span>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Full access
-                </div>
-              </button>
+            <div className="relative">
+              <Mail className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                disabled={loading}
+              />
             </div>
           </div>
 
-          {/* Name Input */}
+          {/* Password Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Your Name
+              Password
             </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-            />
+            <div className="relative">
+              <Lock className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                disabled={loading}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+          </div>
+
+          {/* Login Buttons */}
+          <div className="space-y-3">
+            {/* Login Button */}
+            <button
+              onClick={handleLogin}
+              disabled={loading || !email.trim() || !password.trim()}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 flex items-center justify-center space-x-3 group shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <User className="h-5 w-5" />
+              <span>{loading ? 'Signing In...' : 'Log In'}</span>
+            </button>
+
+            {/* Continue as Guest Button */}
+            <button
+              onClick={handleGuestLogin}
+              disabled={loading}
+              className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-4 px-6 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 flex items-center justify-center space-x-3 group shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none border border-gray-300 dark:border-gray-600"
+            >
+              <Users className="h-5 w-5" />
+              <span>{loading ? 'Loading...' : 'Continue as Guest'}</span>
+            </button>
           </div>
 
           {/* Features List */}
-          <div className="space-y-3 mb-6">
+          <div className="mt-6 space-y-3">
             <div className="flex items-center space-x-3 text-sm text-gray-700 dark:text-gray-300">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span>AI-powered answer comparison</span>
@@ -171,23 +210,12 @@ const Login: React.FC = () => {
               <span>Export results and analytics</span>
             </div>
           </div>
-
-          {/* Login Button */}
-          <button
-            onClick={handleLogin}
-            disabled={!name.trim()}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 flex items-center justify-center space-x-3 group shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {loginType === 'guest' ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
-            <span>Continue as {loginType === 'guest' ? 'Guest' : 'User'}</span>
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
 
         {/* Info Card */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
-            <strong>No registration required!</strong> Simply enter your name and start exploring our AI assessment tools immediately.
+            <strong>Quick Access:</strong> Use any email/password to log in, or continue as guest to explore our AI assessment tools immediately.
           </p>
         </div>
 

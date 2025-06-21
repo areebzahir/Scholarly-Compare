@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Users, Brain, Award, Mail, Lock, User, ArrowRight } from 'lucide-react';
 
+
 const Landing: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [role, setRole] = useState<'professor' | 'guest'>('professor');
@@ -11,7 +12,7 @@ const Landing: React.FC = () => {
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
