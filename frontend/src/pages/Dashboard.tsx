@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { 
-  Upload, 
-  Download, 
-  FileText, 
-  Users, 
-  CheckCircle, 
-  XCircle, 
+import React, { useState, useEffect } from 'react';
+import {
+  Upload,
+  Download,
+  FileText,
+  Users,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   TrendingUp,
   Award,
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
       skipEmptyLines: true,
       complete: async (parseResults) => {
         console.log('Parse results:', parseResults);
-        
+
         if (parseResults.errors.length > 0) {
           console.error('CSV parsing errors:', parseResults.errors);
           setError('Error parsing CSV file. Please check the file format.');
@@ -83,12 +83,12 @@ const Dashboard: React.FC = () => {
         console.log('Available columns:', columns);
 
         // Find name and answer columns (case insensitive)
-        const nameColumn = columns.find(col => 
-          col.toLowerCase().includes('name') || 
+        const nameColumn = columns.find(col =>
+          col.toLowerCase().includes('name') ||
           col.toLowerCase().includes('student')
         );
-        const answerColumn = columns.find(col => 
-          col.toLowerCase().includes('answer') || 
+        const answerColumn = columns.find(col =>
+          col.toLowerCase().includes('answer') ||
           col.toLowerCase().includes('response') ||
           col.toLowerCase().includes('text')
         );
@@ -125,11 +125,11 @@ const Dashboard: React.FC = () => {
         for (let i = 0; i < studentAnswers.length; i++) {
           const student = studentAnswers[i];
           setCurrentProcessing(student.name);
-          
+
           try {
             console.log(`Processing student ${i + 1}/${studentAnswers.length}: ${student.name}`);
             const result = await compareAnswers(correctAnswer, student.answer);
-            
+
             processedResults.push({
               name: student.name,
               answer: student.answer,
@@ -138,12 +138,12 @@ const Dashboard: React.FC = () => {
               passed: result.passed,
               feedback: result.feedback
             });
-            
+
             // Update progress
             const progressPercent = ((i + 1) / studentAnswers.length) * 100;
             setProgress(progressPercent);
             console.log(`Progress: ${progressPercent.toFixed(1)}%`);
-            
+
             // Delay to avoid rate limiting and show progress
             await new Promise(resolve => setTimeout(resolve, 2000));
           } catch (error) {
@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
         }
 
         // Sort results by name initially
-        const sortedResults = processedResults.sort((a, b) => 
+        const sortedResults = processedResults.sort((a, b) =>
           a.name.localeCompare(b.name)
         );
 
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 
+    accept: {
       'text/csv': ['.csv'],
       'application/vnd.ms-excel': ['.csv'],
       'text/plain': ['.csv']
@@ -192,7 +192,7 @@ const Dashboard: React.FC = () => {
   const sortResults = (results: StudentResult[], sortBy: string, order: string) => {
     return [...results].sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.name.toLowerCase();
@@ -267,10 +267,10 @@ const Dashboard: React.FC = () => {
       fileName: uploadedFile || 'Manual Entry',
       title: `Assessment - ${new Date().toLocaleDateString()}`
     };
-    
+
     savedResults.push(newEntry);
     localStorage.setItem('assessment_results', JSON.stringify(savedResults));
-    
+
     alert('Results saved successfully! You can view them in the Previous Results page.');
   };
 
@@ -307,6 +307,30 @@ const Dashboard: React.FC = () => {
     return <div>Loading...</div>;
   }
 
+  {
+    const formdata = new FormData();
+    formdata.append("text_data", correctAnswer)
+    formdata.append("file", studentAnswers)
+
+
+    useEffect(() => {
+      fetch("http://localhost:5000/api/file", { method: "POST", body: uploadedFile })
+        .then(res => res.json())
+        .then(data => console.log(data));
+
+      fetch("http://localhost:5000/api/answerdata", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: correctAnswer }),
+      })
+        .then(res => res.json())
+        .then(data => console.log(data));
+
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -327,7 +351,6 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Instructions */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-8 shadow-sm">
           <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center">
             <Award className="h-5 w-5 mr-2" />
@@ -344,16 +367,18 @@ const Dashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 p-4">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">CSV Format Requirements:</p>
               <div className="text-xs text-blue-800 dark:text-blue-400 font-mono bg-blue-50 dark:bg-blue-900/30 p-2 rounded border">
-                name,answer<br/>
-                John Doe,Photosynthesis converts light...<br/>
+                name,answer<br />
+                John Doe,Photosynthesis converts light...<br />
                 Jane Smith,Plants use sunlight to make...
               </div>
             </div>
           </div>
         </div>
 
+
+        {/* Correct Answer Input */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Correct Answer Input */}
+
           <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 dark:border-gray-700/20 p-6">
             <div className="flex items-center space-x-2 mb-4">
               <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
@@ -389,19 +414,19 @@ const Dashboard: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Step 2: Upload Student Answers</h3>
             </div>
-            
+
             {!processing && results.length === 0 && (
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                  isDragActive 
-                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 scale-105' 
-                    : correctAnswer 
-                      ? 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10' 
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragActive
+                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 scale-105'
+                    : correctAnswer
+                      ? 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
                       : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-not-allowed'
-                }`}
+                  }`}
               >
                 <input {...getInputProps()} disabled={!correctAnswer} />
+
                 <div className={`transition-all ${isDragActive ? 'scale-110' : ''}`}>
                   <Upload className={`h-12 w-12 mx-auto mb-4 ${correctAnswer ? 'text-blue-500 dark:text-blue-400' : 'text-gray-300 dark:text-gray-600'}`} />
                   <p className={`text-lg font-medium mb-2 ${correctAnswer ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -418,7 +443,10 @@ const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-            )}
+
+            )
+            }
+
 
             {processing && (
               <div className="text-center py-8">
@@ -449,7 +477,11 @@ const Dashboard: React.FC = () => {
                   </p>
                 )}
               </div>
-            )}
+            )
+
+
+            }
+
 
             {results.length > 0 && (
               <div className="text-center py-4">
@@ -471,6 +503,9 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+
+
+
 
         {/* Results Section */}
         {results.length > 0 && (
@@ -562,7 +597,7 @@ const Dashboard: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Student Details
                     </th>
-                    <th 
+                    <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                       onClick={() => handleSort('score')}
                     >
@@ -571,7 +606,7 @@ const Dashboard: React.FC = () => {
                         <span className="text-gray-400 dark:text-gray-500">{getSortIcon('score')}</span>
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                       onClick={() => handleSort('similarity')}
                     >
@@ -591,7 +626,7 @@ const Dashboard: React.FC = () => {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {results.map((result, index) => (
                     <React.Fragment key={index}>
-                      <tr 
+                      <tr
                         className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
                         onClick={() => toggleStudentExpansion(result.name)}
                       >
@@ -623,11 +658,10 @@ const Dashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                            result.passed 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' 
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${result.passed
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                               : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
-                          }`}>
+                            }`}>
                             {result.passed ? (
                               <>
                                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -650,7 +684,7 @@ const Dashboard: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                      
+
                       {/* Expanded Details */}
                       {expandedStudent === result.name && (
                         <tr>
@@ -673,7 +707,7 @@ const Dashboard: React.FC = () => {
                                   <Target className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
                                   <h4 className="font-semibold text-gray-900 dark:text-white">Detailed Analysis</h4>
                                 </div>
-                                
+
                                 {/* Score Breakdown */}
                                 <div className="mb-4">
                                   <div className="flex justify-between items-center mb-2">
@@ -684,9 +718,8 @@ const Dashboard: React.FC = () => {
                                   </div>
                                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                     <div
-                                      className={`h-2 rounded-full transition-all ${
-                                        result.score >= 60 ? 'bg-green-500' : 'bg-red-500'
-                                      }`}
+                                      className={`h-2 rounded-full transition-all ${result.score >= 60 ? 'bg-green-500' : 'bg-red-500'
+                                        }`}
                                       style={{ width: `${result.score}%` }}
                                     ></div>
                                   </div>
@@ -715,30 +748,28 @@ const Dashboard: React.FC = () => {
 
                                 {/* Performance Indicators */}
                                 <div className="mt-4 flex flex-wrap gap-2">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    result.score >= 90 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' :
-                                    result.score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                                    result.score >= 70 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
-                                    result.score >= 60 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
-                                    'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
-                                  }`}>
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${result.score >= 90 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' :
+                                      result.score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                        result.score >= 70 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                                          result.score >= 60 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
+                                            'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                                    }`}>
                                     <BarChart3 className="h-3 w-3 mr-1" />
                                     {result.score >= 90 ? 'Excellent' :
-                                     result.score >= 80 ? 'Good' :
-                                     result.score >= 70 ? 'Satisfactory' :
-                                     result.score >= 60 ? 'Needs Improvement' :
-                                     'Requires Review'}
+                                      result.score >= 80 ? 'Good' :
+                                        result.score >= 70 ? 'Satisfactory' :
+                                          result.score >= 60 ? 'Needs Improvement' :
+                                            'Requires Review'}
                                   </span>
-                                  
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    result.similarity >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
-                                    result.similarity >= 60 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400' :
-                                    'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
-                                  }`}>
+
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${result.similarity >= 80 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                                      result.similarity >= 60 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400' :
+                                        'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                                    }`}>
                                     <Target className="h-3 w-3 mr-1" />
                                     {result.similarity >= 80 ? 'High Similarity' :
-                                     result.similarity >= 60 ? 'Moderate Similarity' :
-                                     'Low Similarity'}
+                                      result.similarity >= 60 ? 'Moderate Similarity' :
+                                        'Low Similarity'}
                                   </span>
                                 </div>
                               </div>
@@ -762,7 +793,7 @@ const Dashboard: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome, Guest!</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
-              Explore our AI-powered assessment platform. Enter a correct answer and upload a CSV file 
+              Explore our AI-powered assessment platform. Enter a correct answer and upload a CSV file
               with student responses to see how our AI compares and scores them with detailed feedback.
             </p>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md mx-auto shadow-sm border border-gray-200 dark:border-gray-700">
@@ -771,8 +802,8 @@ const Dashboard: React.FC = () => {
                 CSV Format Example:
               </h4>
               <div className="text-left text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border">
-                name,answer<br/>
-                John Doe,Photosynthesis converts light energy...<br/>
+                name,answer<br />
+                John Doe,Photosynthesis converts light energy...<br />
                 Jane Smith,Plants use sunlight to make glucose...
               </div>
             </div>
