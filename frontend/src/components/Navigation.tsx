@@ -6,7 +6,6 @@ import {
   BookOpen, 
   User, 
   LogOut, 
-  Settings, 
   Home,
   FileText,
   History,
@@ -170,15 +169,6 @@ const Navigation: React.FC = () => {
                       {user.email}
                     </p>
                   </div>
-                  
-                  <Link
-                    to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                    onClick={() => setIsUserMenuOpen(false)}
-                  >
-                    <Settings className="h-4 w-4 mr-3" />
-                    Profile Settings
-                  </Link>
                   
                   <button
                     onClick={() => {
