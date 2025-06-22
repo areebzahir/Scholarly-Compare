@@ -1,5 +1,0 @@
-Alice,42
-Bob,Blue
-Charlie,Yes
-Diana,No
-Eve,Maybe
