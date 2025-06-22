@@ -53,7 +53,6 @@ Scholar Compare is an AI-powered platform that revolutionizes how educators eval
 | Technology    | Purpose                     |
 | ------------- | --------------------------- |
 | MongoDB       | Document-based data storage |
-| MongoDB Atlas | Cloud database service      |
 
 ### AI Services
 | Service           | Purpose                  |
